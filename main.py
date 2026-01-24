@@ -191,36 +191,6 @@ def get_user_info(
 
 
 
-# --- ADDED STREAMING ENDPOINT ---
-@app.post("/ask/stream")
-def ask_tax_question_stream(
-    request: TaxQuestion,
-    user_info: dict = Depends(verify_token)
-):
-    """Streams the answer token by token."""
-    assistant = get_tax_assistant()
-    
-    # Generator function to yield data in SSE format
-    def response_generator():
-        try:
-            # Call the streaming method we added to app.py
-            stream = assistant.ask_question_stream(request.question)
-            
-            for token in stream:
-                # Format as Server-Sent Events (SSE) JSON
-                data = json.dumps({"token": token})
-                yield f"data: {data}\n\n"
-                # Optional: tiny sleep to ensure frontend can catch up if local
-                time.sleep(0.01)
-                
-            # Signal that the stream is finished
-            yield "data: [DONE]\n\n"
-        except Exception as e:
-            error_data = json.dumps({"error": str(e)})
-            yield f"data: {error_data}\n\n"
-
-
-    return StreamingResponse(response_generator(), media_type="text/event-stream")
 
 
 from fastapi.responses import StreamingResponse

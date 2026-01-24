@@ -132,8 +132,7 @@ class TaxAssistant:
         
             except Exception as e:
                 return f"Tax calculation failed: {str(e)}"
-        browser = DuckDuckGoSearchResults(max_results = 5)
-        return [retriever_tool, calculate_nigeria_tax_2025, browser]
+        
 
 
 
@@ -291,8 +290,9 @@ class TaxAssistant:
             return final_content
 
         except Exception as e:
-            response = self.llm.invoke([HumanMessage(content=question)])
-            return response.content
+            raise Exception(f"Failed to process question: {str(e)}")
+            # response = self.llm.invoke([HumanMessage(content=question)])
+            # return response.content
             
         
 
@@ -300,20 +300,7 @@ class TaxAssistant:
 
    
 
-    # --- ADDED STREAMING METHOD ---
-    def ask_question_stream(self, question: str):
-        """Streams the response token by token."""
-        # For true streaming without blocking, we use the LLM directly
-        messages = [
-            SystemMessage(content="You are a Nigeria Tax Assistant. Answer helpfully and concisely. If you are asked a question that is unrelated to taxes, politely decline and state that you are Tax assistant. Also, only answer questions related to Nigerian tax laws and regulations."),
-            HumanMessage(content=question)
-        ]
-        
-        # This yields chunks of text as they are generated
-        for chunk in self.llm.stream(messages):
-            if chunk.content:
-                yield chunk.content
-
+   
 
 assistant = None
 
