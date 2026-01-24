@@ -33,7 +33,7 @@ class TaxAssistant:
         # ✅ REPLACEMENT (Google Gemini)
         # We map 'api_key' to 'google_api_key'
         self.llm = ChatGoogleGenerativeAI(
-            model="gemini-2.5-flash",
+            model="gemini-2.5-flash-lite",
             temperature=0,
             api_key=self.api_key
         )
@@ -222,13 +222,12 @@ class TaxAssistant:
 
         def llm_node(state: MessagesState):
             system = SystemMessage(
-                content=("You are a Nigeria Tax Assistant." 
-                         "Answer helpfully and concisely." 
-                         "If you are asked a question that is unrelated to taxes, politely decline and state that you are Tax assistant." 
-                         "Answer only using retrieved Nigerian tax laws." 
-                         "Answer this particular question: 'what is tax' or anything related to that. Basically answer for the definition of tax. "
-                         "If information is missing, say you do not have it."
-                         "If you have no info, consult the browser tool"
+                content=(
+                    "You are a Nigerian Tax Assistant. "
+                    "First, attempt to answer using the retrieved Nigerian tax laws. "
+                    "If the retrieved documents do not contain the answer, you may use the browser tool, BUT you must explicitly search for 'Nigeria tax law' in your query. "
+                    "NEVER provide tax advice based on UK, US, or non-Nigerian laws. "
+                    "If you still cannot find the answer after searching, admit you do not know."
                 )
             )
             messages = [system] + state["messages"]
