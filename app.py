@@ -222,14 +222,14 @@ class TaxAssistant:
 
         def llm_node(state: MessagesState):
             system = SystemMessage(
-                content=(
-                    "You are a Nigerian Tax Assistant. "
-                    "First, attempt to answer using the retrieved Nigerian tax laws. "
-                    "If the retrieved documents do not contain the answer, you may use the browser tool, BUT you must explicitly search for 'Nigeria tax law' in your query. "
-                    "NEVER provide tax advice based on UK, US, or non-Nigerian laws. "
-                    "If you still cannot find the answer after searching, admit you do not know."
-                )
+            content=(
+                "You are a Nigerian Tax Assistant. "
+                "Answer helpfully and concisely using ONLY the retrieved Nigerian tax laws provided in the context. "
+                "Do not use outside knowledge or internet search. "
+                "If the answer is not found in the retrieved documents, clearly state: 'I cannot find information regarding this in the Nigerian tax laws provided.' "
+                "If asked about topics unrelated to taxes, politely decline."
             )
+        )
             messages = [system] + state["messages"]
             llm_with_tools = self.llm.bind_tools(self.tools)
             response = llm_with_tools.invoke(messages)
