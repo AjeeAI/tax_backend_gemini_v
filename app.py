@@ -132,7 +132,7 @@ class TaxAssistant:
         
             except Exception as e:
                 return f"Tax calculation failed: {str(e)}"
-        
+        return [retriever_tool, calculate_nigeria_tax_2025]
 
 
 
