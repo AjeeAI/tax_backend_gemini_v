@@ -15,10 +15,8 @@ from langchain_core.documents import Document
 from langgraph.graph import StateGraph, MessagesState, START, END
 from langgraph.prebuilt import ToolNode
 from langgraph.checkpoint.sqlite import SqliteSaver
-from duckduckgo_search import DDGS
-
-from langchain_community.tools import DuckDuckGoSearchResults
 from engine.tax_engine import calculate_tax_impact
+from langchain_core.messages import HumanMessage, SystemMessage, AIMessage, AIMessageChunk
 
 load_dotenv()
 
@@ -275,24 +273,32 @@ class TaxAssistant:
         try:
             agent = self.builder.compile(checkpointer=self.checkpointer)
 
-            final_content = ""
-
+            # We use stream_mode="messages" to get individual message chunks 
+            # as they are generated, rather than waiting for the whole node to finish.
+            # Note: This works best if your LLM supports streaming.
+            
             for event in agent.stream(
                 {"messages": [HumanMessage(content=question)]},
-                {"configurable": {"thread_id": user_id}}
+                {"configurable": {"thread_id": user_id}},
+                stream_mode="messages" # <--- IMPORTANT: Switch to message streaming
             ):
-                for value in event.values():
-                    if isinstance(value, dict) and "messages" in value:
-                        msg = value["messages"][-1]
-                        if isinstance(msg, AIMessage) and msg.content:
-                            final_content = msg.content
+                # event is now a (message, metadata) tuple or just the message chunk
+                if isinstance(event, tuple):
+                    chunk, metadata = event
+                else:
+                    chunk = event
 
-            return final_content
+                # We only care about AI message chunks containing content
+                if isinstance(chunk, AIMessageChunk) and chunk.content:
+                    yield chunk.content
+                
+                # Fallback: if it's a standard AIMessage (not a chunk)
+                elif isinstance(chunk, AIMessage) and chunk.content:
+                    yield chunk.content
 
         except Exception as e:
-            raise Exception(f"Failed to process question: {str(e)}")
-            # response = self.llm.invoke([HumanMessage(content=question)])
-            # return response.content
+            # Yield the error so the user sees it in the chat
+            yield f"Error processing request: {str(e)}"
             
         
 
